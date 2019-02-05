@@ -24,7 +24,7 @@ export default class extends React.Component {
           {this.state.data.recent_posts.map((post, key) => {
             return (
               <div key={key}>
-                <a href={`/posts/${post.slug}`}>{post.title}</a>
+                <a href={`/blog/posts/${post.slug}`}>{post.title}</a>
               </div>
             )
           })}

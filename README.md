@@ -42,6 +42,105 @@ export default butter
 
 ## Pages
 
+## Homepage
+
+### Integrate into your application
+
+With our homepage defined, the ButterCMS API will return it in JSON format like this:
+
+```json
+{
+  "data": {
+    "slug": "homepage",
+    "fields": {
+      "seo_title": "Anvils and Dynamite | Acme Co",
+      "headline": "Acme Co provides supplies to your favorite cartoon heroes.",
+      "hero_image": "https://cdn.buttercms.com/c8oSTGcwQDC5I58km5WV",
+      "call_to_action": "Buy Now",
+      "customer_logos": [
+        {
+          "logo_image": "https://cdn.buttercms.com/c8oSTGcwQDC5I58km5WV"
+        },
+        {
+          "logo_image": "https://cdn.buttercms.com/c8oSTGcwQDC5I58km5WV"
+        }
+      ]
+    }
+  }
+}
+```
+
+Create the component, `Homepage.js`:
+
+```jsx
+import React from 'react'
+import butter from './butter-client'
+import { Helmet } from 'react-helmet'
+
+export default class extends React.Component {
+  state = {
+    data: {
+      fields: {
+        customer_logos: []
+      }
+    }
+  }
+  async componentDidMount () {
+    const { match } = this.props
+    const resp = await butter.page.retrieve('*', 'homepage')
+    this.setState(resp.data)
+  }
+  render () {
+    const { fields } = this.state.data
+
+    return (
+      <div>
+        <Helmet>
+          <title>{fields.seo_title}</title>
+          <meta property='og:title' content={fields.facebook_open_graph_title} />
+        </Helmet>
+        <h1>{fields.headline}</h1>
+        <img src={fields.hero_image} />
+        <button>{fields.call_to_action}</button>
+        <h3>Customers Love Us!</h3>
+        <ul>
+          {fields.customer_logos.map((logo) => {
+            return (
+              <li>
+                <img src={logo.logo_image} />
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+    )
+  }
+}
+```
+
+Add the route to the app router, `index.js`:
+
+```jsx
+import React from 'react'
+import ReactDOM from 'react-dom'
+import { BrowserRouter as Router, Route } from 'react-router-dom'
+
+import Homepage from './Homepage'
+
+const AppRouter = () => (
+  <Router>
+    <div>
+      <Route path='/' exact component={Homepage} />
+    </div>
+  </Router>
+)
+
+ReactDOM.render(<AppRouter />, document.getElementById('root'))
+
+```
+
+## Multiple pages
+
 ### Integrate into your application
 
 With our page defined, the ButterCMS API will return it in JSON format like this:
@@ -61,11 +160,12 @@ With our page defined, the ButterCMS API will return it in JSON format like this
 }
 ```
 
-Create a `src/CaseStudy.js` file:
+Create a `src/Customer.js` file:
 
 ```jsx
 import React from 'react'
 import butter from './butter-client'
+import { Helmet } from 'react-helmet'
 
 export default class extends React.Component {
   state = {
@@ -75,15 +175,19 @@ export default class extends React.Component {
   }
   async componentDidMount () {
     const { match } = this.props
-    const resp = await butter.page.retrieve('customer_case_study', match.params.caseStudy)
+    const resp = await butter.page.retrieve('customer_case_study', match.params.customer)
     this.setState(resp.data)
   }
   render () {
     const product = this.state.data
-    const { customer_logo: customerLogo, headline, testimonial } = product.fields
+    const { customer_logo: customerLogo, headline, testimonial, seo_title, facebook_open_graph_title } = product.fields
 
     return (
       <div>
+        <Helmet>
+          <title>{seo_title}</title>
+          <meta property='og:title' content={facebook_open_graph_title} />
+        </Helmet>
         <div>
           <img src={customerLogo} alt='' height='124' width='124' />
         </div>
@@ -93,37 +197,11 @@ export default class extends React.Component {
     )
   }
 }
-
-
-```
-
-### Update the routes in your app to route to the specified components
-
-Create the route for your page in `src/index.js` :
-
-```js
-import React from 'react'
-import ReactDOM from 'react-dom'
-import { BrowserRouter as Router, Route } from 'react-router-dom'
-
-
-import CaseStudy from './CaseStudy'
-
-const AppRouter = () => (
-  <Router>
-    <div>
-      <Route path='/case-studies/:caseStudy' component={CaseStudy} />
-    </div>
-  </Router>
-)
-
-ReactDOM.render(<AppRouter />, document.getElementById('root'))
-
 ```
 
 ### Setup the Customers Page to list all our customers.
 
-Create a new file `src/CaseStudies.js`. In this file, we should:
+Create a new file `src/Customers.js`. In this file, we should:
 
 1. Initialize the butterCMS library
 2. On the `componentDidMount` hook, fetch the list of case studies
@@ -141,14 +219,13 @@ export default class extends React.Component {
     this.setState(resp.data)
   }
   render () {
-    console.log('rendeing')
     return (
       <div>
-        {this.state.data.map((caseStudy, key) => {
+        {this.state.data.map((customer, key) => {
           return (
             <div key={key}>
-              <img src={caseStudy.fields.customer_logo} height='40' width='40' />
-              <Link to={`/case-studies/${caseStudy.slug}`}>{caseStudy.fields.headline}</Link>
+              <img src={customer.fields.customer_logo} height='40' width='40' />
+              <Link to={`/customer/${customer.slug}`}>{customer.fields.headline}</Link>
             </div>
           )
         })}
@@ -156,20 +233,33 @@ export default class extends React.Component {
     )
   }
 }
-
 ```
 
-Next, add the route in the router in `index.js`:
+
+### Update the routes in your app to route to the specified components
+
+Create the route for your page in `src/index.js` :
 
 ```js
+import React from 'react'
+import ReactDOM from 'react-dom'
+import { BrowserRouter as Router, Route } from 'react-router-dom'
+
+
+import Customer from './Customer'
+import Customers from './Customers'
+
 const AppRouter = () => (
   <Router>
     <div>
-      <Route path='/case-studies' exact component={CaseStudies} />
-      <Route path='/case-studies/:caseStudy' component={CaseStudy} />
+      <Route path='/customers' exact component={Customers} />
+      <Route path='/customer/:customer' component={Customer} />
     </div>
   </Router>
 )
+
+ReactDOM.render(<AppRouter />, document.getElementById('root'))
+
 ```
 
 ## Content fields
@@ -219,7 +309,7 @@ export default Faq
 
 ### Setup the Blog page to list all our posts.
 
-We'll setup a React component that fetches and displays posts in `src/Posts.js`:
+We'll setup a React component that fetches and displays posts in `src/Blog.js`:
 
 ```js
 import React, { Component } from 'react'
@@ -246,7 +336,7 @@ class App extends Component {
         {this.state.data.map((post, key) => {
           return (
             <div key={key}>
-              <Link to={`/posts/${post.slug}`}>{post.title}</Link>
+              <Link to={`/blog/posts/${post.slug}`}>{post.title}</Link>
             </div>
           )
         })}
@@ -255,13 +345,13 @@ class App extends Component {
 
         <div>
           {previous_page && (
-            <Link to={`/${previous_page}`}>
+            <Link to={`/blog/${previous_page}`}>
               <a>Prev</a>
             </Link>
           )}
 
           {next_page && (
-            <Link to={`/${next_page}`}>
+            <Link to={`/blog/${next_page}`}>
               <a>Next</a>
             </Link>
           )}
@@ -280,11 +370,12 @@ In our `render()` method we use some clever syntax to only display pagination li
 
 ### Setup the Blog Post page to list a single post
 
-We'll also update our `src/Post.js` component to fetch blog posts via slug and render the title and body:
+We'll also update our `src/BlogPost.js` component to fetch blog posts via slug and render the title and body:
 
 ```js
 import React from 'react'
 import butter from './butter-client'
+import { Helmet } from 'react-helmet'
 
 export default class extends React.Component {
   state = {
@@ -300,6 +391,11 @@ export default class extends React.Component {
 
     return (
       <div>
+        <Helmet>
+          <title>{post.seo_title}</title>
+          <meta name='description' content={post.meta_description} />
+          <meta name='og:image' content={post.featured_image} />
+        </Helmet>
         <h1>{post.title}</h1>
         <div dangerouslySetInnerHTML={{ __html: post.body }} />
       </div>
@@ -317,28 +413,29 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { BrowserRouter as Router, Route } from 'react-router-dom'
 
-import Posts from './Posts'
-import Post from './Post'
-import Categories from './Categories'
-import Category from './Category'
-import CaseStudies from './CaseStudies'
-import CaseStudy from './CaseStudy'
+import Blog from './Blog'
+import BlogPost from './BlogPost'
+import Customers from './Customers'
+import Customer from './Customer'
 import Faq from './Faq'
+import Homepage from './Homepage'
 
 const AppRouter = () => (
   <Router>
     <div>
-      <Route path='/:page' exact component={Posts} />
-      <Route path='/' exact component={Posts} />
-      <Route path='/posts/:post' component={Post} />
-      <Route path='/case-studies' exact component={CaseStudies} />
-      <Route path='/case-studies/:caseStudy' component={CaseStudy} />
+      <Route path='/' exact component={Homepage} />
+      <Route path='/blog/:page' exact component={Blog} />
+      <Route path='/blog' exact component={Blog} />
+      <Route path='/blog/posts/:post' component={BlogPost} />
+      <Route path='/customers' exact component={Customers} />
+      <Route path='/customer/:customer' component={Customer} />
       <Route path='/faq' component={Faq} />
     </div>
   </Router>
 )
 
 ReactDOM.render(<AppRouter />, document.getElementById('root'))
+
 ```
 
 ### Post categories
@@ -346,8 +443,8 @@ ReactDOM.render(<AppRouter />, document.getElementById('root'))
 We can use the ButterCMS API to get all post categories and all posts under a category. Let's create routes in the `server.js` file for the page categories, and the index of pages under a single category:
 
 ```jsx
-<Route path='/posts/categories' exact component={Categories} />
-<Route path='/posts/category/:category' exact component={Category} />
+<Route path='/blog/categories' exact component={Categories} />
+<Route path='/blog/category/:category' exact component={Category} />
 ```
 
 We can then create the React component for the pages. Create a new file `src/Categories.js` :
@@ -370,7 +467,7 @@ export default class extends React.Component {
         {this.state.data.map((category, key) => {
           return (
             <div key={key}>
-              <a href={`/posts/category/${category.slug}`}>{category.name}</a>
+              <a href={`/blog/category/${category.slug}`}>{category.name}</a>
             </div>
           )
         })}
@@ -409,7 +506,7 @@ export default class extends React.Component {
           {this.state.data.recent_posts.map((post, key) => {
             return (
               <div key={key}>
-                <a href={`/posts/${post.slug}`}>{post.title}</a>
+                <a href={`/blog/posts/${post.slug}`}>{post.title}</a>
               </div>
             )
           })}

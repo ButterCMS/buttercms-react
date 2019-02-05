@@ -9,14 +9,13 @@ export default class extends React.Component {
     this.setState(resp.data)
   }
   render () {
-    console.log('rendeing')
     return (
       <div>
-        {this.state.data.map((caseStudy, key) => {
+        {this.state.data.map((customer, key) => {
           return (
             <div key={key}>
-              <img src={caseStudy.fields.customer_logo} height='40' width='40' />
-              <Link to={`/case-studies/${caseStudy.slug}`}>{caseStudy.fields.headline}</Link>
+              <img src={customer.fields.customer_logo} height='40' width='40' />
+              <Link to={`/customer/${customer.slug}`}>{customer.fields.headline}</Link>
             </div>
           )
         })}

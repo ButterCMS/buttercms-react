@@ -15,7 +15,7 @@ export default class extends React.Component {
         {this.state.data.map((category, key) => {
           return (
             <div key={key}>
-              <a href={`/posts/category/${category.slug}`}>{category.name}</a>
+              <a href={`/blog/category/${category.slug}`}>{category.name}</a>
             </div>
           )
         })}

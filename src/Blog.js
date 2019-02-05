@@ -22,7 +22,7 @@ class App extends Component {
         {this.state.data.map((post, key) => {
           return (
             <div key={key}>
-              <Link to={`/posts/${post.slug}`}>{post.title}</Link>
+              <Link to={`/blog/posts/${post.slug}`}>{post.title}</Link>
             </div>
           )
         })}
