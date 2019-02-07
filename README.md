@@ -1,4 +1,4 @@
-# React CMS-powered blog built with React
+# React website and blog powered by ButterCMS
 
 [React](https://reactjs.org/) is a popular javascript library used to build user interfaces.
 
