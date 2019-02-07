@@ -35,7 +35,7 @@ Create a file `src/butter-client.js` that will hold the ButterCMS client that we
 ```js
 import Butter from 'buttercms'
 
-const butter = Butter('f148a1e8d384482bf3e5aa9e2b3a7af5dc62c734')
+const butter = Butter('your_api_key')
 
 export default butter
 ```
